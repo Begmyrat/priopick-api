@@ -1,0 +1,35 @@
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
+from app.core.database import Base, engine
+from app.modules.auth.models import user  # noqa: registers model
+from app.modules.vendors.models import vendor  # noqa: registers model
+from app.modules.auth.routes.auth import router as auth_router
+from app.modules.vendors.routes.vendor import router as vendor_router
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Creates ALL tables on startup
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    await engine.dispose()
+
+
+app = FastAPI(
+    title="PrioPick API",
+    version="1.0.0",
+    description="Smart budget planner with AI suggestions",
+    lifespan=lifespan,
+)
+
+# Register all routers
+app.include_router(auth_router)
+app.include_router(vendor_router)
+
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "service": "priopick-api"}

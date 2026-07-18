@@ -1,0 +1,80 @@
+services:
+
+  # ─────────────────────────────
+  # FastAPI Application
+  # ─────────────────────────────
+  app:
+    build: .
+    container_name: priopick_app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    networks:
+      - priopick_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # ─────────────────────────────
+  # PostgreSQL
+  # ─────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: priopick_db
+    environment:
+      POSTGRES_USER: priopick_user
+      POSTGRES_PASSWORD: priopick_password
+      POSTGRES_DB: priopick_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - priopick_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U priopick_user -d priopick_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────
+  # Redis
+  # ─────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: priopick_redis
+    networks:
+      - priopick_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────
+  # pgAdmin — http://localhost:5050
+  # ─────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: priopick_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@priopick.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    networks:
+      - priopick_network
+    depends_on:
+      - postgres
+
+networks:
+  priopick_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
