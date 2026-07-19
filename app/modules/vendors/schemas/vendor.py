@@ -47,6 +47,8 @@ class VendorUpdate(BaseModel):
     contact_email: Optional[str] = None
     contact_phone: Optional[str] = None
     is_active: Optional[bool] = None
+    rating: Optional[float] = None
+    review_count: Optional[int] = None
 
 
 class VendorResponse(BaseModel):
