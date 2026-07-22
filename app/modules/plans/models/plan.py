@@ -1,3 +1,4 @@
+from typing import List
 import uuid
 from datetime import datetime, timezone
 
@@ -56,10 +57,10 @@ class Plan(Base):
 
     # Relationship to plan items
     # One plan has many items
-    items: Mapped[list] = relationship(
+    items: Mapped[List["PlanItem"]] = relationship(
         "PlanItem",
         back_populates="plan",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
     )
 
 

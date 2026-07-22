@@ -40,37 +40,16 @@ class PlanResponse(BaseModel):
     total_price: Optional[float] = None
     remaining_budget: Optional[float] = None
     ai_reasoning: Optional[str] = None
-    vendors: List[PlanItemResponse] = []
+    
+    # ← Tell Pydantic to look for the ORM's "items" attribute and map it to "vendors"
+    vendors: List[PlanItemResponse] = Field(default=[], validation_alias="items")
+    
     created_at: datetime
 
     model_config = {
         "from_attributes": True,
         "populate_by_name": True,
     }
-
-    @classmethod
-    def model_validate(cls, obj, **kwargs):
-        # If obj is a SQLAlchemy Plan model
-        if hasattr(obj, "items"):
-            return cls(
-                id=obj.id,
-                user_id=obj.user_id,
-                name=obj.name,
-                budget=obj.budget,
-                guest_count=obj.guest_count,
-                event_type=obj.event_type,
-                style=obj.style,
-                total_price=obj.total_price,
-                remaining_budget=obj.remaining_budget,
-                ai_reasoning=obj.ai_reasoning,
-                created_at=obj.created_at,
-                # Map SQLAlchemy "items" → Pydantic "vendors"
-                vendors=[
-                    PlanItemResponse.model_validate(item)
-                    for item in obj.items
-                ],
-            )
-        return super().model_validate(obj, **kwargs)
 
 
 class PlanListResponse(BaseModel):

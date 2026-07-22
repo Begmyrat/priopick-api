@@ -91,6 +91,20 @@ class PlanRepository:
         items: List[dict],
     ) -> Plan:
         """Create a plan with all its items."""
+        
+        # 1. Prepare items first without setting plan_id manually
+        plan_items = [
+            PlanItem(
+                vendor_id=item["vendor_id"],
+                vendor_name=item["vendor_name"],
+                vendor_category=item["vendor_category"],
+                price=item["price"],
+                notes=item.get("notes"),
+            )
+            for item in items
+        ]
+
+        # 2. Attach items directly to the Plan relationship
         plan = Plan(
             user_id=user_id,
             name=name,
@@ -102,32 +116,14 @@ class PlanRepository:
             remaining_budget=remaining_budget,
             ai_suggestion=ai_suggestion,
             ai_reasoning=ai_reasoning,
+            items=plan_items  # ← SQLAlchemy maps this automatically
         )
+        
         self.db.add(plan)
         await self.db.flush()
 
-        # Create plan items
-        for item in items:
-            plan_item = PlanItem(
-                plan_id=plan.id,
-                vendor_id=item["vendor_id"],
-                vendor_name=item["vendor_name"],
-                vendor_category=item["vendor_category"],
-                price=item["price"],
-                notes=item.get("notes"),
-            )
-            self.db.add(plan_item)
-
-        await self.db.flush()
-
-        # ← THIS IS THE FIX
-        # Reload plan WITH items relationship explicitly
-        result = await self.db.execute(
-            select(Plan)
-            .where(Plan.id == plan.id)
-            .options(selectinload(Plan.items))
-        )
-        return result.scalar_one()
+        # No need to reload! The plan and its items are already attached in memory.
+        return plan
 
     async def delete(self, plan: Plan) -> None:
         """Hard delete — plans are personal data."""
