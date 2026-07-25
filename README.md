@@ -19,7 +19,6 @@ Router → Service → Repository → Database
 - **Auth** — JWT authentication
 - **Vendors** — Vendor marketplace with filtering
 - **Plans** — AI-powered budget planning
-- **Analytics** — Usage statistics
 
 ## Run Locally
 ```bash
