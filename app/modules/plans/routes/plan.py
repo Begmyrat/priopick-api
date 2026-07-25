@@ -29,7 +29,6 @@ async def create_plan(
     current_user=Depends(get_current_user),
     plan_service: PlanService = Depends(get_plan_service),
 ):
-    """Create a new AI-powered plan."""
     return await plan_service.create_plan(
         user_id=current_user.id,
         data=data,
@@ -51,10 +50,6 @@ async def get_plans(
     )
 
 
-# ─────────────────────────────────────────────────────
-# IMPORTANT: /compare MUST be defined BEFORE /{plan_id}
-# Otherwise FastAPI treats "compare" as a UUID and fails
-# ─────────────────────────────────────────────────────
 @router.get("/compare", response_model=PlanCompareResponse)
 async def compare_plans(
     plan_a_id: uuid.UUID = Query(description="First plan ID"),
@@ -62,11 +57,6 @@ async def compare_plans(
     current_user=Depends(get_current_user),
     plan_service: PlanService = Depends(get_plan_service),
 ):
-    """
-    Compare two plans side by side.
-
-    Usage: /plans/compare?plan_a_id=uuid&plan_b_id=uuid
-    """
     return await plan_service.compare(
         plan_a_id=plan_a_id,
         plan_b_id=plan_b_id,
@@ -80,7 +70,6 @@ async def get_plan(
     current_user=Depends(get_current_user),
     plan_service: PlanService = Depends(get_plan_service),
 ):
-    """Get a single plan."""
     return await plan_service.get_by_id(
         plan_id=plan_id,
         user_id=current_user.id,
@@ -94,10 +83,6 @@ async def update_plan(
     current_user=Depends(get_current_user),
     plan_service: PlanService = Depends(get_plan_service),
 ):
-    """
-    Update plan name or style.
-    Cannot change budget or guest count — create a new plan instead.
-    """
     return await plan_service.update(
         plan_id=plan_id,
         user_id=current_user.id,
@@ -111,7 +96,6 @@ async def delete_plan(
     current_user=Depends(get_current_user),
     plan_service: PlanService = Depends(get_plan_service),
 ):
-    """Delete a plan."""
     return await plan_service.delete(
         plan_id=plan_id,
         user_id=current_user.id,

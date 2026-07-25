@@ -29,8 +29,3 @@ app = FastAPI(
 app.include_router(auth_router)
 app.include_router(vendor_router)
 app.include_router(plan_router)
-
-
-@app.get("/health")
-async def health():
-    return {"status": "healthy", "service": "priopick-api"}

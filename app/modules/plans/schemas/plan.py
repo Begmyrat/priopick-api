@@ -1,8 +1,13 @@
 import uuid
 from datetime import datetime
 from typing import List, Optional
-
+from app.modules.vendors.models.vendor import VendorCategory
 from pydantic import BaseModel, Field
+from enum import Enum
+
+class SuggestionType(str, Enum):
+    AI = "ai"
+    ALGORITHM = "algorithm"
 
 
 class PlanCreate(BaseModel):
@@ -11,6 +16,8 @@ class PlanCreate(BaseModel):
     guest_count: int = Field(gt=0)
     event_type: Optional[str] = None
     style: Optional[str] = None
+    categories: Optional[List[VendorCategory]] = None
+    suggestion_type: SuggestionType = SuggestionType.AI
 
 
 class PlanUpdate(BaseModel):
@@ -40,8 +47,6 @@ class PlanResponse(BaseModel):
     total_price: Optional[float] = None
     remaining_budget: Optional[float] = None
     ai_reasoning: Optional[str] = None
-    
-    # ← Tell Pydantic to look for the ORM's "items" attribute and map it to "vendors"
     vendors: List[PlanItemResponse] = Field(default=[], validation_alias="items")
     
     created_at: datetime
@@ -53,7 +58,7 @@ class PlanResponse(BaseModel):
 
 
 class PlanListResponse(BaseModel):
-    items: List[PlanResponse]   # ← this "items" = list of plans
+    items: List[PlanResponse]
     total: int
     page: int
     page_size: int

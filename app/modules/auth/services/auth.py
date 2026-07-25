@@ -1,5 +1,3 @@
-import uuid
-
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 

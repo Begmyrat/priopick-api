@@ -18,12 +18,6 @@ class PlanRepository:
         page: int = 1,
         page_size: int = 10,
     ) -> Tuple[List[Plan], int]:
-        """
-        Get all plans for a specific user.
-        Users can only see their own plans.
-        """
-        # selectinload loads related items in same query
-        # Without this, plan.items would be empty
         query = (
             select(Plan)
             .where(Plan.user_id == user_id)
@@ -45,13 +39,11 @@ class PlanRepository:
         return plans, total
     
     async def update(self, plan: Plan, **kwargs) -> Plan:
-        """Update plan fields."""
         for key, value in kwargs.items():
             if value is not None:
                 setattr(plan, key, value)
         await self.db.flush()
 
-        # Reload with items
         result = await self.db.execute(
             select(Plan)
             .where(Plan.id == plan.id)
@@ -64,10 +56,6 @@ class PlanRepository:
         plan_id: uuid.UUID,
         user_id: uuid.UUID,
     ) -> Optional[Plan]:
-        """
-        Get one plan by ID.
-        user_id check ensures users can only see their own plans.
-        """
         result = await self.db.execute(
             select(Plan)
             .where(Plan.id == plan_id)
@@ -90,9 +78,6 @@ class PlanRepository:
         ai_reasoning: str,
         items: List[dict],
     ) -> Plan:
-        """Create a plan with all its items."""
-        
-        # 1. Prepare items first without setting plan_id manually
         plan_items = [
             PlanItem(
                 vendor_id=item["vendor_id"],
@@ -104,7 +89,6 @@ class PlanRepository:
             for item in items
         ]
 
-        # 2. Attach items directly to the Plan relationship
         plan = Plan(
             user_id=user_id,
             name=name,
@@ -116,16 +100,14 @@ class PlanRepository:
             remaining_budget=remaining_budget,
             ai_suggestion=ai_suggestion,
             ai_reasoning=ai_reasoning,
-            items=plan_items  # ← SQLAlchemy maps this automatically
+            items=plan_items
         )
         
         self.db.add(plan)
         await self.db.flush()
 
-        # No need to reload! The plan and its items are already attached in memory.
         return plan
 
     async def delete(self, plan: Plan) -> None:
-        """Hard delete — plans are personal data."""
         await self.db.delete(plan)
         await self.db.flush()

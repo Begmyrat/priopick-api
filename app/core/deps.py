@@ -1,6 +1,3 @@
-# deps.py — shared dependencies used across ALL modules
-# One place for all common dependencies
-
 import uuid
 
 from fastapi import Depends, HTTPException, status
@@ -17,10 +14,6 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Shared dependency for ALL protected routes across all modules.
-    Any route that needs authentication uses this.
-    """
     from app.modules.auth.repositories.user import UserRepository
 
     payload = decode_token(credentials.credentials)
